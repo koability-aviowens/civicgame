@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Civil Rule Quiz</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#f4f7fb;--card:#fff;--ink:#14213d;--mut:#5b6785;--pri:#2563eb;--sel:#dbe7ff;--ok:#16a34a;--bad:#dc2626;--bd:#cfd8ea}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1729;--card:#1a2540;--ink:#f1f5ff;--mut:#a7b3d1;--pri:#5b8cff;--sel:#2a3d6e;--bd:#33446f}}
+:root[data-theme="dark"]{--bg:#0f1729;--card:#1a2540;--ink:#f1f5ff;--mut:#a7b3d1;--pri:#5b8cff;--sel:#2a3d6e;--bd:#33446f}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-weight:700}
+.wrap{max-width:640px;margin:0 auto;padding:16px}
+.card{background:var(--card);border-radius:20px;padding:20px;box-shadow:0 4px 16px rgba(0,0,0,.08)}
+h1{font-size:28px;margin:0 0 8px}
+p{color:var(--mut);font-size:18px;line-height:1.4}
+button{font:inherit;cursor:pointer}
+.btn{width:100%;padding:16px;font-size:20px;border:0;border-radius:14px;background:var(--pri);color:#fff;margin-top:16px}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;font-size:18px}
+.timer{width:64px;height:64px;position:relative;flex:none}
+.timer svg{transform:rotate(-90deg)}
+.timer span{position:absolute;inset:0;display:grid;place-items:center;font-size:22px}
+.q{font-size:22px;line-height:1.35;margin:8px 0 16px}
+.opt{display:flex;gap:12px;align-items:center;width:100%;text-align:left;padding:14px;margin-bottom:10px;font-size:19px;border:3px solid var(--bd);border-radius:14px;background:var(--card);color:var(--ink)}
+.opt b{flex:none;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:var(--bd)}
+.opt.sel{border-color:var(--pri);background:var(--sel)}
+.opt.sel b{background:var(--pri);color:#fff}
+.bar{height:8px;background:var(--bd);border-radius:8px;overflow:hidden;margin-bottom:12px}
+.bar i{display:block;height:100%;background:var(--pri);transition:width .3s}
+.big{font-size:64px;text-align:center;margin:12px 0}
+.center{text-align:center}
+.rev{margin-top:16px;font-size:17px}
+.rev div{padding:10px;border-radius:10px;margin-bottom:8px;background:var(--bg)}
+.hide{display:none}
+</style></head><body><div class="wrap">
+
+<div id="start" class="card center">
+<h1>🗳️ Civil Rule Quiz</h1>
+<p>50 questions • 30 seconds each.<br>Pick an answer, then tap <b>Next</b>. Your score shows at the end.</p>
+<button class="btn" onclick="begin()">Start Quiz</button>
+</div>
+
+<div id="quiz" class="card hide">
+<div class="top"><div id="count"></div><div class="timer"><svg width="64" height="64"><circle cx="32" cy="32" r="28" fill="none" stroke="var(--bd)" stroke-width="6"/><circle id="ring" cx="32" cy="32" r="28" fill="none" stroke="var(--pri)" stroke-width="6" stroke-linecap="round" stroke-dasharray="176" stroke-dashoffset="0"/></svg><span id="t">30</span></div></div>
+<div class="bar"><i id="prog"></i></div>
+<div class="q" id="q"></div>
+<div id="opts"></div>
+<button class="btn" id="next" onclick="next()" disabled>Next</button>
+</div>
+
+<div id="end" class="card hide center">
+<h1>Quiz Complete!</h1>
+<div class="big" id="score"></div>
+<p id="pct"></p>
+<p id="msg"></p>
+<button class="btn" onclick="toggleRev()">Review Answers</button>
+<div id="rev" class="rev hide" style="text-align:left"></div>
+<button class="btn" onclick="begin()">Play Again</button>
+</div>
+
+</div>
+<script>
+const Q=`Civil rule is a system of government headed by:|Civilian leaders|Kings only|Foreign governors|Military officers|0
+In civil rule, political power is held by people in:|Private companies|Civilian public offices|Military barracks|Foreign countries|1
+Under civil rule, leaders are chosen through:|Military takeover|Elections|Appointment by soldiers|Inheritance|1
+Democracy is a system of government in which the:|Leaders rule for life|King rules alone|People take part in choosing their leaders|Army chooses leaders|2
+In a democracy, citizens have the right to:|Vote in elections, subject to law|Ignore the constitution|Rule alone|Remove all laws|0
+In a democracy, government operates according to a:|Military decree|Personal wishes|Rumours|Constitution and laws|3
+Nigeria has experienced both civilian and ___ governments since 1960.|Religious|Military|Colonial|Royal|1
+Nigeria became independent from British rule on:|1st October 1960|1st October 1963|15th January 1966|29th May 1999|0
+Nigeria began independence under a ___ system of government.|Military|Presidential|Parliamentary|Tribal|2
+Which period is one of Nigeria's major periods of civilian government?|1966 - 1975|1960 - 1966|1984 - 1998|1900 - 1914|1
+Which period is one of Nigeria's major periods of civilian government?|1966 - 1979|1914 - 1960|1979 - 1983|1984 - 1993|2
+Nigeria's current civilian government began in:|1979|1966|1983|1999|3
+Which is a feature of civil rule?|Suspended parties|Military decrees|Elections|Dissolved legislature|2
+Political parties in civil rule:|Are run by the army|Present candidates to voters|Are always banned|Cannot contest elections|1
+The constitution establishes the structure and powers of government and also protects:|Rebels|Citizens' rights|Foreign leaders|Military rulers|1
+The National Assembly of Nigeria consists of the Senate and the:|Supreme Court|Council of Chiefs|House of Representatives|Army Council|2
+Separation of powers distributes government responsibilities among the executive, legislature and:|Press|Police|Judiciary|Army|2
+In civil rule, the rule of law means everyone including government officials:|Is free from the law|Is above the law|Can ignore courts|Operates under the law|3
+Which is a way citizens take part in politics?|Taking over government|Ignoring elections|Voting|Burning ballot boxes|2
+In civil rule, the government is headed by:|Civilian leaders|Traditional spies|Foreign soldiers|Military officers|0
+In military rule, leaders usually come to power through:|Military takeover|Party primaries|Free elections|Citizen voting|0
+In military rule, political party activities may be:|Suspended or restricted|Doubled|Encouraged|Funded by voters|0
+In military rule, the legislature may be:|Elected|Dissolved or suspended|Strengthened|Expanded|1
+Military governments may rule through:|Party manifestos|Elections|Referendums only|Decrees|3
+Nigeria's First Republic lasted from:|1999 to 2003|1966 to 1979|1979 to 1983|1960 to 1966|3
+The system of government in the First Republic was based on the:|Westminster model|Tribal model|Military model|Presidential model|0
+Who was the head of government (Prime Minister) in the First Republic?|Dr. Nnamdi Azikiwe|Alhaji Shehu Shagari|Chief Obafemi Awolowo|Sir Abubakar Tafawa Balewa|3
+Regional governments were headed by:|Premiers|Senators|Prime Ministers|Soldiers|0
+At first, the Governor-General represented the:|Nigerian army|Senate|British monarch|Premiers|2
+In 1963, Nigeria became a:|Protectorate|Military state|Republic|Colony|2
+Who became Nigeria's first President in 1963?|Alhaji Shehu Shagari|Dr. Nnamdi Azikiwe|Sir Abubakar Tafawa Balewa|Chief Obafemi Awolowo|1
+Which party was the NCNC?|Northern Peoples Congress|National Party of Nigeria|Action Group|National Council of Nigeria and the Cameroons|3
+The Northern Peoples Congress (NPC) had strong support in:|Western Nigeria|The sea|Northern Nigeria|Foreign lands|2
+The Action Group (AG) had strong support particularly in:|Western Nigeria|Abuja only|Northern Nigeria|Eastern Nigeria only|0
+The First Republic ended with a military coup on:|31 December 1983|29 May 1999|15 January 1966|1 October 1960|2
+Which is a challenge of the First Republic?|No regions|No political parties|Perfect elections|Regional rivalry|3
+The Second Republic lasted from:|1999 to 2007|1960 to 1966|1979 to 1983|1966 to 1975|2
+Who was Nigeria's first executive president?|Chief Obafemi Awolowo|Sir Abubakar Tafawa Balewa|Dr. Nnamdi Azikiwe|Alhaji Shehu Shagari|3
+The Second Republic changed from the parliamentary system to the:|Tribal system|Colonial system|Military system|Presidential system|3
+The Second Republic operated under the:|1914 Constitution|1979 Constitution|1999 Constitution|1963 Constitution|1
+Which was a political party in the Second Republic?|Northern Peoples Congress|National Party of Nigeria (NPN)|NCNC|Action Group|1
+Which was a political party in the Second Republic?|Unity Party of Nigeria (UPN)|NPC|Action Group|NCNC|0
+The Second Republic ended in:|1979|1999|1966|1983|3
+Civilian rule returned to Nigeria on:|1 October 1960|15 January 1966|29 May 1999|1 January 1984|2
+Which is a significance of the 1999 transition?|Elections were stopped|Military rule began|Democratic institutions were restored|Parties were banned|2
+Nnamdi Azikiwe was popularly known as:|Zik of Africa|Father of Law|Zik of the North|The Iron Man|0
+Azikiwe was associated with which party?|UPN|NPC|NCNC|NPN|2
+Sir Abubakar Tafawa Balewa was born in Bauchi and trained as a:|Lawyer|Teacher|Soldier|Doctor|1
+Alhaji Shehu Shagari was a teacher before entering:|The army|Politics|Farming|Banking|1
+Azikiwe became Nigeria's first indigenous Governor-General in:|1960|1963|1966|1979|0`.split("\n").map(l=>{const p=l.split("|");return{q:p[0],o:p.slice(1,5),a:+p[5]}});
+const L="ABCD",T=30;
+let i=0,sel=null,left=T,iv=null,ans=[];
+const $=id=>document.getElementById(id);
+function show(id){["start","quiz","end"].forEach(s=>$(s).classList.toggle("hide",s!==id))}
+function begin(){i=0;ans=[];$("rev").classList.add("hide");show("quiz");load()}
+function load(){
+ sel=null;left=T;const x=Q[i];
+ $("count").textContent="Question "+(i+1)+" of "+Q.length;
+ $("prog").style.width=(i/Q.length*100)+"%";
+ $("q").textContent=x.q;
+ $("opts").innerHTML="";
+ x.o.forEach((t,k)=>{const b=document.createElement("button");b.className="opt";b.innerHTML="<b>"+L[k]+"</b><span></span>";b.lastChild.textContent=t;b.onclick=()=>pick(k);$("opts").appendChild(b)});
+ $("next").textContent=i==Q.length-1?"Submit":"Next";
+ $("next").disabled=true;
+ tick();clearInterval(iv);iv=setInterval(()=>{left--;tick();if(left<=0)next()},1000);
+}
+function tick(){$("t").textContent=left;$("ring").style.strokeDashoffset=176*(1-left/T);$("ring").style.stroke=left<=10?"var(--bad)":"var(--pri)"}
+function pick(k){sel=k;[...$("opts").children].forEach((b,j)=>b.classList.toggle("sel",j==k));$("next").disabled=false}
+function next(){
+ clearInterval(iv);ans[i]=sel;
+ if(i<Q.length-1){i++;load()}else finish();
+}
+function finish(){
+ const s=ans.reduce((n,a,k)=>n+(a===Q[k].a?1:0),0),p=Math.round(s/Q.length*100);
+ $("score").textContent=s+" / "+Q.length;
+ $("pct").textContent=p+"%";
+ $("msg").textContent=p>=80?"🌟 Excellent work!":p>=60?"👍 Good job! Keep practising.":p>=40?"🙂 Fair attempt. Revise and try again.":"📚 Keep studying, you can do better!";
+ $("rev").innerHTML="";
+ Q.forEach((x,k)=>{const d=document.createElement("div"),ok=ans[k]===x.a;
+  d.textContent=(ok?"✅ ":"❌ ")+(k+1)+". "+x.q+" — Answer: "+x.o[x.a]+(ok?"":(ans[k]==null?" (no answer)":" (you chose: "+x.o[ans[k]]+")"));
+  $("rev").appendChild(d)});
+ show("end");
+}
+function toggleRev(){$("rev").classList.toggle("hide")}
+</script></body></html>
